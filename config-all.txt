@@ -1,0 +1,106 @@
+! ============================
+! ========== MyRouter ==========
+! ============================
+
+enable
+config t
+
+hostname MyRouter
+
+no ip domain-lookup
+
+service password-encryption
+
+enable password class
+
+line con 0
+password cisco
+login
+logging sync
+exit
+
+line vty 0 4
+password cisco
+login
+exit
+
+int g0/0
+ip address 192.168.10.254 255.255.255.0
+no shut
+exit
+
+int Lo0
+ip address 1.1.1.1 255.255.255.0
+no shut
+
+banner motd #Prohibido acceder a MyRouter sin autorizacion#
+
+! ============================
+! =========== SwitchX ==========
+! ============================
+
+enable
+config t
+hostname SwitchX
+
+no ip domain-lookup
+
+service password-encryption
+
+enable password class
+
+line con 0
+password cisco
+login
+logging sync
+exit
+
+line vty 0 15
+password cisco
+login
+exit
+
+int vlan 1
+description SwitchX config
+ip address 192.168.10.1 255.255.255.0
+no shut
+exit
+
+ip default-gateway 192.168.10.254
+
+banner motd #Prohibido acceso no autorizado a SwitchX #
+
+! ============================
+! =========== SwitchY ==========
+! ============================
+
+enable
+config t
+hostname SwitchY
+
+no ip domain-lookup
+
+service password-encryption
+
+enable password class
+
+line con 0
+password cisco
+login
+logging sync
+exit
+
+line vty 0 15
+password cisco
+login
+exit
+
+int vlan 1
+description SwitchY config
+ip address 192.168.10.200 255.255.255.0
+no shut
+exit
+
+ip default-gateway 192.168.10.254
+
+banner motd #Prohibido acceso no autorizado a SwitchY #

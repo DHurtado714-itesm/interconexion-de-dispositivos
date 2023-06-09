@@ -1,0 +1,99 @@
+!---------------------------------------------------------------
+!Configuraci�n parcial del router MyNewProject
+!---------------------------------------------------------------
+ena
+config t
+hostname MyNewProject
+enable secret class
+no ip domain-lookup
+
+line con 0
+password cisco
+login
+logging sync
+
+line vty 0 4
+password cisco
+login
+
+int g0/0
+ip add 192.168.10.253 255.255.255.252
+no shut
+
+!--- En esta secci�n incluir la configuraci�n de las Subinterfaces ---
+!---------------------------------------------------------------------
+
+int g0/1.1
+encapsulation dot1Q 1
+ip address 192.168.10.194 255.255.255.252
+
+int g0/1.10
+encapsulation dot1Q 10
+ip address 192.168.10.126 255.255.255.128
+
+int g0/1.20
+encapsulation dot1Q 20
+ip address 192.168.10.190 255.255.255.192
+
+int g0/1
+no shut
+
+!--- En esta secci�n incluir la configuraci�n de DHCP ----------------
+!---------------------------------------------------------------------
+ip dhcp excluded-address 192.168.10.126
+
+ip dhcp pool HomeOffice
+network 192.168.10.0 255.255.255.128
+default-router 192.168.1.126
+
+! Ruta por default
+ip route 0.0.0.0 0.0.0.0 g0/0
+
+!-----------------------------------------------------
+!Configuraci�n parcial del switch S-NewVLANs
+!-----------------------------------------------------
+ena
+config t
+hostname S-NewVLANs
+enable secret class
+no ip domain-lookup
+
+line con 0
+password cisco
+login
+logging sync
+
+line vty 0 15
+password cisco
+login
+
+!-- En esta secci�n agregar los comandos de configuraci�n de VLANs --
+!-----------------------------------------------------------------------------------------------
+
+vlan 10
+name HomeOffice
+
+vlan 20 
+name Entretenimiento
+
+! definicion de rango de los VLAN
+
+int range f0/1-15
+switchport mode access
+switchport access vlan 10
+
+int range f0/16-24
+switchport mode access
+switchport access vlan 20
+
+!definicion puertos trunk
+int g0/1
+switchport mode trunk
+no shut
+
+! definicion de puerto de gestion
+int vlan 1
+ip address 192.168.10.193 255.255.255.252
+no shut
+
+ip default-gateway 192.168.1.194

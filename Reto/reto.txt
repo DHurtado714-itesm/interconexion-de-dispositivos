@@ -1,0 +1,268 @@
+!===============================================
+! Configuracion del router RFrontera
+!===============================================
+
+! Cambiar al modo privilegiado
+enable
+
+! Parametros del reloj
+clock set 09:30:00 Jun 05 2023
+
+!===============================================
+! Configuracion Global==========================
+!===============================================
+
+! Entrar a la configuracion de la terminal
+configure terminal
+
+! Asignar nombre
+hostname RFrontera
+
+! Deshabilitar el DNS
+no ip domain-lookup
+
+! Encriptar las contraseñas
+service password-encryption
+
+! Secret del enable
+enable secret class
+
+! Secret de consola
+line con 0
+password cisco
+login
+
+! Secret vty
+line vty 0 4
+password cisco
+login
+
+! Banner
+
+banner motd #
+-------------------------------------
+---------------ALERTA----------------
+----No puedes entrar a mi sistema----
+------Ingresa las credenciales-------
+-------------------------------------
+#
+
+!=======================================
+! Interfaces Fisicas y Subinterfaz
+!=======================================
+
+! Subinterfaz
+interface g0/0/0.100
+encapsulation dot1q 100
+description Subinterfaz para la VLAN Prepa
+ip address 192.168.100.78 255.255.255.240
+
+interface g0/0/0.200
+encapsulation dot1q 200
+description Subinterfaz para la VLAN Secundaria 
+ip address 192.168.100.86 255.255.255.248
+
+interface g0/0/0.300
+encapsulation dot1q 300
+description Subinterfaz para la VLAN Primaria 
+ip address 192.168.100.46 255.255.255.248
+
+interface g0/0/0.400
+encapsulation dot1q 400
+description Subinterfaz para la VLAN ServerOMI 
+ip address 192.168.100.46 255.255.255.248
+
+interface g0/0/0.500
+encapsulation dot1q 500
+description Subinterfaz para la VLAN Jueces 
+ip address 192.168.100.46 255.255.255.248
+
+interface g0/0/0.600
+encapsulation dot1q 600
+description Subinterfaz para la VLAN Coaches 
+ip address 192.168.100.46 255.255.255.248
+
+interface g0/0/0.700
+encapsulation dot1q 700
+description Subinterfaz para la VLAN Prensa 
+ip address 192.168.100.30 255.255.255.224
+
+interface g0/0/0.911
+encapsulation dot1q 
+description Subinterfaz para la VLAN Gestion 
+ip address 192.168.100.134 255.255.255.248
+
+! Enciende todas las subinterfaces (enciende la raiz)
+int g0/0/0
+no shutdown
+
+!Interfaces Fisicas
+
+interface S0/1/0
+  description Interfaz con el ISP AT&T
+  ip address 172.16.255.234 255.255.255.252
+  no shutdown
+
+interface G0/0/0
+  description Interfaz con el Switch0
+  ip address 192.168.100.254 255.255.255.252
+  no shutdown
+
+!DHCP para Jueces
+ip dhcp excluded-address 192.168.100.78
+ip dhcp pool POOL_Entretenimiento
+  network 192.168.100.64 255.255.255.240
+  default-router 192.168.100.78
+  dns-server 8.8.8.8
+
+!DHCP para Coaches
+ip dhcp excluded-address 192.168.100.86
+ip dhcp pool POOL_Educacion
+  network 192.168.100.80 255.255.255.248
+  default-router 192.168.100.86
+  dns-server 8.8.8.8
+
+!DHCP para Prensa
+ip dhcp excluded-address 192.168.100.28 192.168.100.30 
+ip dhcp pool POOL_Teletrabajo
+  network 192.168.100.0 255.255.255.224
+  default-router 192.168.100.30
+  dns-server 8.8.8.8
+
+! Ruta estatica flotante
+ip route 0.0.0.0 0.0.0.0 s0/1/0
+
+
+! =================================================================
+! =========================== SWITCH ==============================
+! =================================================================
+
+! =================================================
+! Configuracion de switch 2960 (Switch principal)
+! =================================================
+
+! Establecer modo privilegiado
+
+enable
+
+! Establecer el reloj
+clock set 13:25:00 Jun 3 2023
+
+! Entrar a la config t
+config t
+
+! Bautizando
+hostname Switch0
+
+! Deshabilitar el DNS
+no ip domain-lookup
+
+! Encriptar las contraseñas
+service password-encryption
+
+! Secret del enable
+enable secret class
+
+! Secret de consola
+line con 0
+password cisco
+login
+
+! Secret vty
+line vty 0 15
+password cisco
+login
+
+! Banner
+banner motd #
+
+  +-------------------------------------------------+
+  |                                                 |
+  |         Bienvenido al Switch Principal          |
+  |   Acceso no autorizado, esta prohibido parcero  | 
+  |                                                 |
+  +-------------------------------------------------+
+#
+
+!Pasos para conseguir configuracion exitosas de VLANs
+!1. Crear la BD (vlan.dat) de las VLANs con nombre
+vlan 100
+  name Prepa
+vlan 200
+  name Secundaria
+vlan 300
+  name Primaria
+vlan 400
+  name ServerOMI
+vlan 500
+  name Jueces
+vlan 600
+  name Coaches
+vlan 700
+  name Prensa
+vlan 911
+  name Gestion
+
+!2. Asignar puertos a cada VLAN
+
+!interface range PUERTOS
+ !description TEXTO
+ !switchport mode {access | trunk }
+ !switchport access vlan ID_Vlan
+
+interface range f0/1-2
+ description VLAN de Prepa
+ switchport mode access
+ switchport access vlan 100
+ no shut
+
+interface range f0/3-4
+ description VLAN de Secundaria
+ switchport mode access
+ switchport access vlan 200
+
+interface range f0/5-6
+ description VLAN de Primaria
+ switchport mode access
+ switchport access vlan 300
+ no shut
+
+interface g0/1
+ description VLAN de ServerOMI
+ switchport mode access
+ switchport access vlan 400
+ no shut
+
+interface range f0/10-11
+ description VLAN de Jueces
+ switchport mode access
+ switchport access vlan 500
+ no shut
+
+interface range f0/14-15
+ description VLAN de Coaches
+ switchport mode access
+ switchport access vlan 600
+ no shut
+
+interface range f0/16-17
+ description VLAN de Prensa
+ switchport mode access
+ switchport access vlan 700
+ no shut
+
+!3. Dar de alta los puertos TRUNK
+
+interface G0/1
+ description Puerto Truncal
+ switchport mode trunk
+ no shut
+
+!4. Dar IP para VLAN de gestion + gateway
+
+interface vlan 911
+ description VLAN de gestion
+ ip address 192.168.20.97 255.255.255.248
+ no shut
+
+ip default-gateway 192.168.20.102

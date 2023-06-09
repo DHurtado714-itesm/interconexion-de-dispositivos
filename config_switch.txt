@@ -1,0 +1,30 @@
+enable
+config t
+hostname SUM
+no ip domain-lookup
+
+!PASSWORD DE MODO PRIVILEGIADO
+enable secret class
+
+!PASSWORD DE CONSOLA
+line con 0
+password cisco
+login
+logging synchronous
+exit
+
+!PASSWORD DE ACCESOS REMOTOS
+line vty 0 15
+password cisco
+login
+logging synchronous
+exit
+
+banner motd #Prohibido entrar sin autorización#
+
+interface vlan1
+ip address 192.168.10.1 255.255.255.0
+no shutdown
+exit
+
+ip default-gateway 192.168.10.254

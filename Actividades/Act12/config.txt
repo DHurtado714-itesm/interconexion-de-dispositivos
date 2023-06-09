@@ -1,0 +1,196 @@
+! =================================================
+! Configuracion de un router 1841 (Router Yuya)
+! =================================================
+
+! Establecer modo privilegiado
+
+enable
+
+! Establecer el reloj
+clock set 13:25:00 Jun 3 2023
+
+! Configurar la terminal
+configure terminal
+
+! Bautizar el equipo
+hostname YuyasRouter
+
+! Deshabilitar el DNS
+no ip domain-lookup
+
+! Encriptar las contraseñas
+service password-encryption
+
+! Secret del enable
+enable secret class
+
+! Secret de consola
+line con 0
+password cisco
+login
+
+! Secret vty
+line vty 0 4
+password cisco
+login
+
+! Banner
+banner motd #
+  +-------------------------------------------------+
+  |                                                 |
+  |          Bienvenido al Router Yuya              |
+  |   Acceso no autorizado, esta prohibido parcero  | 
+  |                                                 |
+  +-------------------------------------------------+
+#
+
+! Configurar interfaces
+
+interface G0/0
+  description Interfaz para el estudio
+  ip address 215.60.127.30 255.255.255.224
+  no shutdown
+
+interface G0/1
+  description Interfaz para los servicios
+  ip address 215.60.127.46 255.255.255.240
+  no shutdown
+
+interface S0/0/0
+  description Interfaz para el ISP
+  ip address 132.254.255.253 255.255.255.252
+  no shutdown
+
+! ip default-gateway 132.254.255.254
+
+! Configurar rutas estaticas
+ip route 0.0.0.0 0.0.0.0 s0/0/0
+
+
+
+
+! ================================================= 
+! Configuracion de un router 1841 (Router ISP)
+! =================================================
+
+! Rutas estaticas
+
+ip route 215.60.127.0 255.255.255.224 S0/0/0
+ip route 215.60.127.32 255.255.255.240 132.254.255.253
+
+
+
+
+! =================================================
+! Configuracion de switch 2960 (Switch de Studio)
+! =================================================
+
+! Establecer modo privilegiado
+
+enable
+
+! Establecer el reloj
+clock set 13:25:00 Jun 3 2023
+
+! Entrar a la config t
+config t
+
+! Bautizando
+hostname SwitchStudio
+
+! Deshabilitar el DNS
+no ip domain-lookup
+
+! Encriptar las contraseñas
+service password-encryption
+
+! Secret del enable
+enable secret class
+
+! Secret de consola
+line con 0
+password cisco
+login
+
+! Secret vty
+line vty 0 15
+password cisco
+login
+
+! Banner
+banner motd #
+
+  +-------------------------------------------------+
+  |                                                 |
+  |         Bienvenido al Switch de Studio          |
+  |   Acceso no autorizado, esta prohibido parcero  | 
+  |                                                 |
+  +-------------------------------------------------+
+#
+
+! Configurar la VLAN 1 para la gestion remota
+interface vlan 1
+  description VLAN de gestion
+  ip address 215.60.127.29 255.255.255.224
+  no shutdown
+
+ip default-gateway 215.60.127.30
+
+
+
+
+! =================================================
+! Configuracion de switch 2960 (Switch de Servicio)
+! =================================================
+
+! Establecer modo privilegiado
+
+enable
+
+! Establecer el reloj
+clock set 13:25:00 Jun 3 2023
+
+! Entrar a la config t
+config t
+
+! Bautizando
+hostname SwitchServicio
+
+! Deshabilitar el DNS
+no ip domain-lookup
+
+! Encriptar las contraseñas
+service password-encryption
+
+! Secret del enable
+enable secret class
+
+! Secret de consola
+line con 0
+password cisco
+login
+
+! Secret vty
+line vty 0 15
+password cisco
+login
+
+! Banner
+banner motd #
+
+  +-------------------------------------------------+
+  |                                                 |
+  |         Bienvenido al Switch de Servicio        |
+  |   Acceso no autorizado, esta prohibido parcero  | 
+  |                                                 |
+  +-------------------------------------------------+
+#
+
+! Configurar la VLAN 1 para la gestion remota
+interface vlan 1
+  description VLAN de gestion
+  ip address 215.60.127.45 255.255.255.240
+  no shutdown
+
+ip default-gateway 215.60.127.46
+

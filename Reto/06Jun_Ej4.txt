@@ -1,0 +1,443 @@
+!===============================================
+! Configuracion del router CoworQ
+!===============================================
+
+! Cambiar al modo privilegiado
+enable
+
+! Parametros del reloj
+clock set 09:30:00 Jun 05 2023
+
+!===============================================
+! Configuracion Global==========================
+!===============================================
+
+! Entrar a la configuracion de la terminal
+configure terminal
+
+! Asignar nombre
+hostname RF-CoworQ
+
+! Desactivar el DNS
+no ip domain-lookup
+
+! Establecer seguridad basica
+service password-encryption
+
+enable secret Intern
+
+!Dar de alta usuarios con privilegios
+username CEO privilege 15 secret tc2006B
+username CIT privilege 15 secret tc2006B
+username Admin privilege 15 secret tc2006B
+username Intern privilege 2 secret tc2006B
+
+ip domain-name CafeTEC.mx
+
+crypto key generate rsa
+
+yes
+1024
+
+line console 0
+login local
+logging sync
+
+line vty 0 2
+transport input ssh
+login local 
+loggin sync
+
+banner motd #
+-------------------------------------
+---------------ALERTA----------------
+----No puedes entrar a mi sistema----
+------Ingresa las credenciales-------
+-------------------------------------
+#
+
+!=======================================
+! Interfaces Fisicas y Subinterfaz
+!=======================================
+
+! Subinterfaz
+interface g0/0/1.100
+encapsulation dot1q 100
+description Subinterfaz para la VLAN Entretenimiento
+ip address 192.168.100.78 255.255.255.240
+
+interface g0/0/1.200
+encapsulation dot1q 200
+description Subinterfaz para la VLAN Educacion 
+ip address 192.168.100.86 255.255.255.248
+
+interface g0/0/1.300
+encapsulation dot1q 
+description Subinterfaz para la VLAN IoT 
+ip address 192.168.100.46 255.255.255.248
+
+interface g0/0/1.600
+encapsulation dot1q 
+description Subinterfaz para la VLAN Teletrabajo 
+ip address 192.168.100.30 255.255.255.224
+
+interface g0/0/1.911
+encapsulation dot1q 
+description Subinterfaz para la VLAN Gestion 
+ip address 192.168.100.134 255.255.255.248
+
+! Enciende todas las subinterfaces (enciende la raiz)
+int g0/0/1
+no shutdown
+
+!Interfaces Fisicas
+
+interface S0/1/0
+  description Interfaz con el ISP de Backup
+  ip address 172.16.255.234 255.255.255.252
+  no shutdown
+
+interface G0/0/0
+  description Interfaz con el ISP Primario
+  ip address 192.168.100.254 255.255.255.252
+  no shutdown
+
+!DHCP para Entretenimiento
+ip dhcp excluded-address 192.168.100.78
+ip dhcp pool POOL_Entretenimiento
+  network 192.168.100.64 255.255.255.240
+  default-router 192.168.100.78
+  dns-server 8.8.8.8
+
+!DHCP para Educacion
+ip dhcp excluded-address 192.168.100.86
+ip dhcp pool POOL_Educacion
+  network 192.168.100.80 255.255.255.248
+  default-router 192.168.100.86
+  dns-server 8.8.8.8
+
+!DHCP para Teletrabajo
+ip dhcp excluded-address 192.168.100.28 192.168.100.30 
+ip dhcp pool POOL_Teletrabajo
+  network 192.168.100.0 255.255.255.224
+  default-router 192.168.100.30
+  dns-server 8.8.8.8
+
+! Ruta estatica flotante
+ip route 0.0.0.0 0.0.0.0 s0/1/0 5
+ip route 0.0.0.0 0.0.0.0 g0/0/0
+
+
+! =================================================================
+! =========================== SWITCH ==============================
+! =================================================================
+
+!============================================
+! CONFIGURACION DEL SWITCH S-CoworQ
+!============================================
+
+! Modo Privilegiado
+enable
+
+! Parametros del reloj
+clock set 10:30:00 Jun 05 2023
+
+!===========================================
+! CONFIGURACION GLOBAL
+!===========================================
+
+! Entrar a la config t
+config t
+
+! Bautizando
+hostname S-CoworQ
+
+no ip domain-lookup
+
+
+enable secret Becario
+
+!Dar de alta usuarios con privilegios
+username CEO privilege 15 secret tc2006B
+username CIT privilege 15 secret tc2006B
+username Admin privilege 15 secret tc2006B
+username Intern privilege 2 secret tc2006B
+
+ip domain-name CoworQ.mx
+
+crypto key generate rsa
+
+yes
+1024
+
+line console 0
+login local
+logging sync
+
+line vty 0 1
+transport input ssh
+login local 
+loggin sync
+
+
+! Banner
+banner motd #
+-------------------------------------
+---------------ALERTA----------------
+----No puedes entrar a mi sistema----
+------Ingresa las credenciales-------
+-------------------------------------
+#
+
+! Funcionalidad de VTP server
+! vtp domain DOOMINIO
+! vtp mode server
+! vtp password PASSWORD
+
+vtp domain CoworQ
+vtp mode server
+vtp password tc2006B
+
+!Pasos para conseguir configuracion exitosas de VLANs
+!1. Crear la BD (vlan.dat) de las VLANs con nombre
+vlan 100
+  name Entretenimiento
+vlan 200
+  name Educacion
+vlan 300
+  name IoT
+vlan 600
+  name Teletrabajo
+vlan 700
+  name Profesores
+vlan 911
+  name Gestion
+
+!2. Asignar puertos a cada VLAN
+
+!interface range PUERTOS
+ !description TEXTO
+ !switchport mode {access | trunk }
+ !switchport access vlan ID_Vlan
+
+interface range f0/1
+ description VLAN de Entretenimiento
+ switchport mode access
+ switchport access vlan 100
+ no shut
+
+interface range f0/8-14
+ description VLAN de Educacion
+ switchport mode access
+ switchport access vlan 200
+ no shut
+
+interface range f0/16-20
+ description VLAN de IoT
+ switchport mode access
+ switchport access vlan 300
+ no shut
+
+!3. Dar de alta los puertos TRUNK
+
+interface range f0/15, g0/1-2
+ description Puerto Truncal
+ switchport mode trunk
+ no shut
+
+!4. Dar IP para VLAN de gestion + gateway
+
+interface vlan 911
+ description VLAN de gestion
+ ip address 192.168.20.129 255.255.255.248
+ no shut
+
+ip default-gateway 192.168.20.134
+
+!============================================
+! CONFIGURACION DEL SWITCH S-IoT
+!============================================
+
+! Modo Privilegiado
+enable
+
+! Parametros del reloj
+clock set 10:30:00 Jun 05 2023
+
+!===========================================
+! CONFIGURACION GLOBAL
+!===========================================
+
+! Entrar a la config t
+config t
+
+! Bautizando
+hostname S-IoT
+
+no ip domain-lookup
+
+
+enable secret Becario
+
+!Dar de alta usuarios con privilegios
+username CEO privilege 15 secret tc2006B
+username CIT privilege 15 secret tc2006B
+username Admin privilege 15 secret tc2006B
+username Intern privilege 2 secret tc2006B
+
+ip domain-name CoworQ.mx
+
+crypto key generate rsa
+
+yes
+1024
+
+line console 0
+login local
+logging sync
+
+line vty 0 1
+transport input ssh
+login local 
+loggin sync
+
+
+! Banner
+banner motd #
+-------------------------------------
+---------------ALERTA----------------
+----No puedes entrar a mi sistema----
+------Ingresa las credenciales-------
+-------------------------------------
+#
+
+! Funcionalidad de VTP client
+! vtp domain DOOMINIO
+! vtp mode client
+! vtp password PASSWORD
+
+vtp domain CoworQ
+vtp mode client
+vtp password tc2006B
+
+!2. Asignar puertos a cada VLAN
+
+!interface range PUERTOS
+ !description TEXTO
+ !switchport mode {access | trunk }
+ !switchport access vlan ID_Vlan
+
+interface range f0/1-24, G0/2
+ description Interfaz de IoT
+ switchport mode access
+ switchport access vlan 300
+ no shut
+
+! 3. Dar de alta los puertos TRUNK
+interface g0/1
+ description Puerto Truncal
+ switchport mode trunk
+ no shut
+
+!4. Dar IP para VLAN de gestion + gateway
+
+interface vlan 911
+ description VLAN de gestion
+ ip address 192.168.20.130 255.255.255.248
+ no shut
+
+ip default-gateway 192.168.20.134
+
+!============================================
+! CONFIGURACION DEL SWITCH S-Teletrabajo
+!============================================
+
+! Modo Privilegiado
+enable
+
+! Parametros del reloj
+clock set 10:30:00 Jun 05 2023
+
+!===========================================
+! CONFIGURACION GLOBAL
+!===========================================
+
+! Entrar a la config t
+config t
+
+! Bautizando
+hostname S-Teletrabajo
+
+no ip domain-lookup
+
+
+enable secret Becario
+
+!Dar de alta usuarios con privilegios
+username CEO privilege 15 secret tc2006B
+username CIT privilege 15 secret tc2006B
+username Admin privilege 15 secret tc2006B
+username Intern privilege 2 secret tc2006B
+
+ip domain-name CoworQ.mx
+
+crypto key generate rsa
+
+yes
+1024
+
+line console 0
+login local
+logging sync
+
+line vty 0 1
+transport input ssh
+login local 
+loggin sync
+
+
+! Banner
+banner motd #
+-------------------------------------
+---------------ALERTA----------------
+----No puedes entrar a mi sistema----
+------Ingresa las credenciales-------
+-------------------------------------
+#
+
+! Funcionalidad de VTP client
+! vtp domain DOOMINIO
+! vtp mode client
+! vtp password PASSWORD
+
+vtp domain CoworQ
+vtp mode client
+vtp password tc2006B
+
+!2. Asignar puertos a cada VLAN
+
+!interface range PUERTOS
+ !description TEXTO
+ !switchport mode {access | trunk }
+ !switchport access vlan ID_Vlan
+
+interface range f0/1-24, G0/2
+ description Interfaz de Teletrabajo
+ switchport mode access
+ switchport access vlan 600
+  no shut 
+
+! 3. Dar de alta los puertos TRUNK
+interface g0/1
+ description Puerto Truncal
+ switchport mode trunk
+ no shut
+
+!4. Dar IP para VLAN de gestion + gateway
+
+interface vlan 911
+ description VLAN de gestion
+ ip address 192.168.20.131 255.255.255.248
+ no shut
+
+ip default-gateway 192.168.20.134

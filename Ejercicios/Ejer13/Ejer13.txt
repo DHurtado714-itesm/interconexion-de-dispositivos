@@ -1,0 +1,146 @@
+------------------------
+--------- MyISP --------
+------------------------
+! Ya Configurado !!!!
+
+! RUTAS ESTÁTICAS
+
+ip route 196.128.11.0 255.255.255.192 s0/0/0
+ip route 196.128.11.128 255.255.255.192 134.89.254.242
+ip route 221.57.1.0 255.255.255.0 s0/0/0
+
+--------------------------
+-------- RFrontera -------
+--------------------------
+enable
+config t
+
+hostname RFrontera
+
+!Encriptar passwords
+service password-enc
+
+! Desactivar DNS
+no ip domain-lookup
+
+! Password de la consola
+line con 0
+password cisco
+login
+logging sync
+exit
+
+! Conexión TELNET o para configurar SSH
+line vty 0 4
+password cisco
+login
+logging sync
+exit
+
+! Password para entrar a modo privilegiado
+enable password class
+
+int S0/0/0
+desc Conexion con ISP
+ip address 134.89.254.242 255.255.255.252
+no shut
+exit
+
+! DCE Configuracion del reloj
+int S0/0/1
+description Conexion con RA
+ip address 198.68.1.249 255.255.255.252
+clock rate 128000
+no shut
+exit
+
+int g0/0
+desc  Conexion con red amarilla
+ip address 221.57.1.254 255.255.255.0
+no shut
+exit
+
+! RUTAS ESTÁTICAS
+! Ruta estatica hacia la red azul
+! ------------------------------
+! Ruta default
+! Directamente conectada
+ip route 0.0.0.0 0.0.0.0 s0/0/0
+! Recursiva o del next hop
+ip route 0.0.0.0 0.0.0.0 134.89.254.241
+ 
+
+! Directamente conectada
+ip route 151.101.1.64 255.255.255.192 s0/0/0
+! Recursiva o del next-hop
+! ip route 151.101.1.64 255.255.255.192 134.89.254.241
+! Completamente conectada, no funciona en Packet Tracer
+! ip route 151.101.1.64 255.255.255.192 s0/0/0 134.89.254.241
+
+! Ruta estatica hacia redes verdes
+! --------------------------------
+! Directamente conectada
+ip route 196.128.11.0 255.255.255.192 s0/0/1
+! Recursiva o del next hop
+ip route 196.128.11.128 255.255.255.192 198.68.1.250
+
+ip route 0.0.0.0 0.0.0.0 134.89.254.241
+ip route 196.128.11.0 255.255.255.192 s0/0/1
+ip route 196.128.11.128 255.255.255.192 198.68.1.250
+
+
+----------------------
+-------- RA ----------
+----------------------
+
+enable
+config t
+
+hostname RA
+
+!Encriptar passwords
+service password-enc
+
+! Desactivar DNS
+no ip domain-lookup
+
+! Password de la consola
+line con 0
+password cisco
+login
+logging sync
+exit
+
+! Conexión TELNET o para configurar SSH
+line vty 0 4
+password cisco
+login
+logging sync
+exit
+
+! Password para entrar a modo privilegiado
+enable password class
+
+int S0/0/0
+description Conexion RF
+ip address 198.68.1.250 255.255.255.252
+no shut
+exit
+
+int g0/0
+description Conexion con subred izquierda
+ip address 196.128.11.62 255.255.255.192
+no shut
+exit
+
+int g0/1
+description Conexion subred derecha
+ip address 196.128.11.190 255.255.255.192
+no shut
+exit
+
+! RUTAS ESTÁTICAS
+! Directamente conectada hacia red amarilla
+ip route 221.57.1.0 255.255.255.0 s0/0/0
+! Recursiva hacia red azul
+ip route 151.101.1.64 255.255.255.192 198.68.1.249

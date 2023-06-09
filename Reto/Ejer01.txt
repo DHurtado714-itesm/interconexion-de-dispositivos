@@ -1,0 +1,157 @@
+! =================================================
+! Configuracion de un router 1841 (Router Frontera)
+! =================================================
+
+! Establecer modo privilegiado
+
+enable
+
+! Establecer el reloj
+clock set 13:25:00 Jun 1 2023
+
+! ----- Opcion B -----
+
+! Configurar la terminal
+configure terminal
+
+! Bautizar el equipo
+hostname RF-SucursalCQ
+
+! Deshabilitar el DNS
+no ip domain-lookup
+
+! Encriptar las contraseñas
+service password-encryption
+
+! Secret del enable
+enable secret tc2006B
+
+! Secret de consola
+line con 0
+password tc2006B
+login
+
+! Secret vty
+line vty 0 2
+password tc2006B
+login
+
+! Banner
+banner motd #
+  +-------------------------------------------------+
+  |                                                 |
+  |   Bienvenido al Router Frontera de Sucursal CQ  |
+  |   Acceso no autorizado, esta prohibido parcero  | 
+  |                                                 |
+  +-------------------------------------------------+
+#
+
+! Configurar interfaces
+
+interface FastEthernet0/0
+  description Interfaz para la red local de la cafeteria
+  ip address 192.168.20.126 255.255.255.128
+  no shutdown
+
+interface FastEthernet0/1
+  description Interfaz de interconexion con el ISP
+  ip address 192.168.20.254 255.255.255.252
+  no shutdown
+
+! Configuracion del DHCP
+ip dhcp excluded-address 198.168.20.100
+ip dhcp excluded-address 198.168.20.125 192.168.20.126
+
+ip dhcp pool MyPOOL
+  network 192.168.20.0 255.255.255.128
+  default-router 192.168.20.126
+  dns-server 8.8.8.8
+
+! Ruta estatica por default
+! ip route DirIP_inicial Mask_Bloque ID_Interfaz
+ip route 0.0.0.0 0.0.0.0 FastEthernet 0/1
+
+
+! =================================================
+! Configuracion de switch 2960 (Switch de Sucursal)
+! =================================================
+
+! Establecer modo privilegiado
+
+enable
+
+! Establecer el reloj
+clock set 13:25:00 Jun 1 2023
+
+! ----- Opcion A -----
+
+! Configurar la terminal
+configure terminal
+
+! Bautizar el equipo
+hostname S-SucursalCQ
+
+no ip domain-lookup
+
+service password-encryption
+
+! Dar de alta usuarios, uno por renglon, que podra gestionar los equipos
+! de interconexion
+
+username CEO privilege 15 secret tc2006B
+username CIT privilege 15 secret tc2006B
+username Admin privilege 15 secret tc2006B
+ip domain-name CafeTEC.com
+crypto key generate rsa
+
+line console 0
+  login
+
+line vty 0 2
+  transport input ssh
+  login
+
+! ----- Opcion B -----
+! Entrar a la config t
+config t
+
+! Bautizando
+hostname S-SucursalCQ
+
+! Deshabilitar el DNS
+no ip domain-lookup
+
+! Encriptar las contraseñas
+service password-encryption
+
+! Secret del enable
+enable secret tc2006B
+
+! Secret de consola
+line con 0
+password tc2006B
+login
+
+! Secret vty
+line vty 0 2
+password tc2006B
+login
+
+! Banner
+banner motd #
+
+  +-------------------------------------------------+
+  |                                                 |
+  |   Bienvenido al Router Frontera de Sucursal CQ  |
+  |   Acceso no autorizado, esta prohibido parcero  | 
+  |                                                 |
+  +-------------------------------------------------+
+#
+
+! Configurar la VLAN 1 para la gestion remota
+interface vlan 1
+  description VLAN de gestion
+  ip address 192.168.20.125 255.255.255.128
+  no shutdown
+
+ip default-gateway 192.168.20.126

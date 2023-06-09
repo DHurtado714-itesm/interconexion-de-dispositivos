@@ -1,0 +1,239 @@
+!===============================================
+! Configuracion del router frontera
+!===============================================
+
+! Cambiar al modo privilegiado
+enable
+
+! Parametros del reloj
+clock set 09:30:00 Jun 05 2023
+
+!===============================================
+! Configuracion Global==========================
+!===============================================
+
+! Entrar a la configuracion de la terminal
+configure terminal
+
+! Asignar nombre
+hostname RF-SucursalCQ
+
+! Desactivar el DNS
+no ip domain-lookup
+
+! Establecer seguridad basica
+service password-encryption
+
+enable secret Intern
+
+!Dar de alta usuarios con privilegios
+username CEO privilege 15 secret tc2006B
+username CIT privilege 15 secret tc2006B
+username Admin privilege 15 secret tc2006B
+username Intern privilege 2 secret tc2006B
+
+ip domain-name CafeTEC.mx
+
+crypto key generate rsa
+
+yes
+1024
+
+line console 0
+login local 
+
+line vty 0 1
+transport input ssh
+login local 
+loggin sync
+
+banner motd #
+-------------------------------------
+---------------ALERTA----------------
+----No puedes entrar a mi sistema----
+------Ingresa las credenciales-------
+-------------------------------------
+#
+
+!=======================================
+! Interfaces
+!=======================================
+
+! Interface F0/0
+interface f0/0.150
+encapsulation dot1q 150
+description Subinterfaz para la Vlan Clientes
+ip address 192.168.20.62 255.255.255.192
+
+! Interface F0/0
+interface f0/0.200
+encapsulation dot1q 200
+description Subinterfaz para la Vlan Cajas
+ip address 192.168.20.86 255.255.255.248
+
+! Interface F0/0
+interface f0/0.400
+encapsulation dot1q 400
+description Subinterfaz para la Vlan Servers
+ip address 192.168.20.94 255.255.255.248
+
+! Interface F0/0
+interface f0/0.500
+encapsulation dot1q 500
+description Subinterfaz para la Vlan Gerencia
+ip address 192.168.20.78 255.255.255.240
+
+! Interface F0/0
+interface f0/0.911
+encapsulation dot1q 911
+description Subinterfaz para la Vlan Gestion
+ip address 192.168.20.102 255.255.255.248
+
+int f0/0
+no shutdown
+
+!Interface F0/1
+interface f0/1
+description Interfaz que interconecta con el ISP
+ip address 192.168.20.254 255.255.255.252
+no shutdown
+
+
+!DHCP para Clientes
+ip dhcp excluded-address 192.168.20.62
+ip dhcp pool myPool-Clientes
+  network 192.168.20.0 255.255.255.192
+  default-router 192.168.20.62
+  dns-server 8.8.8.8
+
+!DHCP para Gerencia
+!Configurar un DHCP para asignar IP de manera automatica
+ip dhcp excluded-address 192.168.20.78
+  ip dhcp pool myPool-Gerencia
+  network 192.168.20.64 255.255.255.240
+  default-router 192.168.20.78
+  dns-server 8.8.8.8
+
+
+! Establecer una ruta por default para sacar todo el trafico al Internet
+ip route 0.0.0.0 0.0.0.0 f0/1
+
+
+! =================================================================
+! =========================== SWITCH ==============================
+! =================================================================
+
+!============================================
+! CONFIGURACION DEL SWITCH CQ
+!============================================
+
+! Modo Privilegiado
+enable
+
+! Parametros del reloj
+clock set 10:30:00 Jun 05 2023
+
+!===========================================
+! CONFIGURACION GLOBAL
+!===========================================
+
+! Entrar a la config t
+config t
+
+! Bautizando
+hostname S-SucursalCQ
+
+no ip domain-lookup
+
+
+enable secret Becario
+
+!Dar de alta usuarios con privilegios
+username CEO privilege 15 secret tc2006B
+username CIT privilege 15 secret tc2006B
+username Admin privilege 15 secret tc2006B
+username Intern privilege 2 secret tc2006B
+
+ip domain-name CafeTEC.mx
+
+crypto key generate rsa
+
+yes
+1024
+
+line console 0
+login local 
+
+line vty 0 1
+transport input ssh
+login local 
+loggin sync
+
+
+! Banner
+banner motd #
+-------------------------------------
+---------------ALERTA----------------
+----No puedes entrar a mi sistema----
+------Ingresa las credenciales-------
+-------------------------------------
+#
+
+!Pasos para conseguir configuracion exitosas de VLANs
+!1. Crear la BD (vlan.dat) de las VLANs con nombre
+vlan 150
+  name Clientes
+vlan 200
+  name Cajas
+vlan 400
+  name Servers
+vlan 500
+  name Gerencia
+vlan 911
+  name Gestion
+
+!2. Asignar puertos a cada VLAN
+
+!interface range PUERTOS
+ !description TEXTO
+ !switchport mode {access | trunk }
+ !switchport access vlan ID_Vlan
+
+interface range f0/20-24
+ description VLAN de Clientes
+ switchport mode access
+ switchport access vlan 150
+ no shut
+
+interface range f0/1-6
+ description VLAN de Cajas
+ switchport mode access
+ switchport access vlan 200
+
+interface range g0/2
+ description VLAN de Servers
+ switchport mode access
+ switchport access vlan 400
+ no shut
+
+interface range f0/10-16
+ description VLAN de Gerencia
+ switchport mode access
+ switchport access vlan 500
+ no shut
+
+!3. Dar de alta los puertos TRUNK
+
+interface G0/1
+ description Puerto Truncal
+ switchport mode trunk
+ no shut
+
+!4. Dar IP para VLAN de gestion + gateway
+
+interface vlan 911
+ description VLAN de gestion
+ ip address 192.168.20.97 255.255.255.248
+ no shut
+
+ip default-gateway 192.168.20.102

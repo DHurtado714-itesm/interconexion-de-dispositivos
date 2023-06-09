@@ -1,0 +1,187 @@
+! =================================================
+! Configuracion de un router 1841 (Router Frontera)
+! =================================================
+
+! Establecer modo privilegiado
+
+enable
+
+! Establecer el reloj
+clock set 19:25:00 Jun 1 2023
+
+! Configurar la terminal
+configure terminal
+
+! Bautizar el equipo
+hostname RFrontera
+
+! Deshabilitar el DNS
+no ip domain-lookup
+
+! Encriptar las contraseñas
+service password-encryption
+
+! Secret del enable
+enable secret class
+
+! Secret de consola
+line con 0
+password cisco
+login
+
+! Secret vty
+line vty 0 4
+password cisco
+login
+
+! Banner
+banner motd #
+  +-------------------------------------------------+
+  |                                                 |
+  |          Bienvenido al Router Frontera          |
+  |   Acceso no autorizado, esta prohibido parcero  | 
+  |                                                 |
+  +-------------------------------------------------+
+#
+
+! Configurar interfaces
+
+interface G0/0
+  description Interfaz para los administradores
+  ip address 221.10.68.158 255.255.255.224
+  no shutdown
+
+interface G0/1
+  description Interfaz para los usuarios
+  ip address 221.10.68.126 255.255.255.128
+  no shutdown
+
+interface Loopback0
+  description Interfaz de loopback
+  ip address 1.1.1.1 255.255.255.0
+
+!===========
+! DHCP
+!===========
+
+ip dhcp pool UsersG0/1
+network 221.10.68.0 255.255.255.128
+default-router 221.10.68.126
+
+ip dhcp excluded-address 221.10.68.125 221.10.68.126
+
+
+! =================================================
+! Configuracion de switch 2960 (Switch de usuarios)
+! =================================================
+
+! Establecer modo privilegiado
+
+enable
+
+! Establecer el reloj
+clock set 19:25:00 Jun 1 2023
+
+! ----- Opcion B -----
+! Entrar a la config t
+config t
+
+! Bautizando
+hostname SUsers
+
+! Deshabilitar el DNS
+no ip domain-lookup
+
+! Encriptar las contraseñas
+service password-encryption
+
+! Secret del enable
+enable secret class
+
+! Secret de consola
+line con 0
+password cisco
+login
+
+! Secret vty
+line vty 0 15
+password cisco
+login
+
+! Banner
+banner motd #
+
+  +-------------------------------------------------+
+  |                                                 |
+  |         Bienvenido al Switch de usuarios        |
+  |   Acceso no autorizado, esta prohibido parcero  | 
+  |                                                 |
+  +-------------------------------------------------+
+#
+
+! Configurar la VLAN 1 para la gestion remota
+interface vlan 1
+  description VLAN de gestion
+  ip address 221.10.68.125 255.255.255.128
+  no shutdown
+
+ip default-gateway 221.10.68.126
+
+
+
+
+! =================================================
+! Configuracion de switch 2960 (Switch de la compania)
+! =================================================
+
+! Establecer modo privilegiado
+
+enable
+
+! Establecer el reloj
+clock set 19:25:00 Jun 1 2023
+
+! ----- Opcion B -----
+! Entrar a la config t
+config t
+
+! Bautizando
+hostname SCompany
+
+! Deshabilitar el DNS
+no ip domain-lookup
+
+! Encriptar las contraseñas
+service password-encryption
+
+! Secret del enable
+enable secret class
+
+! Secret de consola
+line con 0
+password cisco
+login
+
+! Secret vty
+line vty 0 15
+password cisco
+login
+
+! Banner
+banner motd #
+
+  +-------------------------------------------------+
+  |                                                 |
+  |         Bienvenido al Switch de company         |
+  |   Acceso no autorizado, esta prohibido parcero  | 
+  |                                                 |
+  +-------------------------------------------------+
+#
+
+! Configurar la VLAN 1 para la gestion remota
+interface vlan 1
+  description VLAN de gestion
+  ip address 221.10.68.157 255.255.255.224
+  no shutdown
+
+ip default-gateway 221.10.68.158
