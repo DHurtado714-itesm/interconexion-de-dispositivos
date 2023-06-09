@@ -1,0 +1,58 @@
+!===============================================
+! Configuracion del Switch Principal
+!===============================================
+
+! Cambiar al modo privilegiado
+enable
+
+! Parametros del reloj
+clock set 09:30:00 Jun 12 2023
+
+!===============================================
+! =======    Configuracion Global   ============
+!===============================================
+
+! Entrar a la configuracion de la terminal
+configure terminal
+
+! Asignar nombre
+hostname SFinalSecundaria
+
+! Desactivar el DNS
+no ip domain-lookup
+
+! Establecer seguridad basica
+service password-encryption
+
+enable secret Intern
+
+!Dar de alta usuarios con privilegios
+username Director privilege 15 secret tc2006B
+username Admin privilege 15 secret tc2006B
+username Intern privilege 2 secret tc2006B
+
+ip domain-name OMI.mx
+
+crypto key generate rsa
+
+yes
+1024
+
+line console 0
+login local
+logging sync
+
+line vty 0 2
+transport input ssh
+login local 
+loggin sync
+
+banner motd #
+-------------------------------------
+-  BIENVENIDO AL SWITCH FINAL      -
+-  Creado por:                     -
+-  Daniel Hurtado
+-  Yuna Chung
+-  Diego Sandoval
+-------------------------------------
+#
