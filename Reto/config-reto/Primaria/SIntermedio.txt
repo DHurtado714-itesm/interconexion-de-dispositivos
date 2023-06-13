@@ -56,3 +56,41 @@ banner motd #
 -  Diego Sandoval
 -------------------------------------
 #
+
+!===============================================
+! =======    Configuracion de VTP     ==========
+! ==============================================
+
+vtp domain OMI
+vtp mode client
+vtp password tc2006B
+
+!===============================================
+! =======    Configuracion de VLAN    ==========
+! ==============================================
+
+! Puertos fisicos
+
+interface range f0/1-12
+  description Conexión a los Switches de Acceso
+  switchport mode access
+  switchport access vlan 100
+  no shutdown
+
+! Puerto trunk
+
+interface g0/1
+  description Conexión al Switch Principal
+  switchport mode trunk
+  no shutdown
+
+!===============================================
+! Gestion + gateway
+!===============================================
+
+interface vlan 900
+  description VLAN de gestion
+  ip addres 172.16.12.130 255.255.255.192
+  no shutdown
+
+ip default-gateway 172.16.12.190

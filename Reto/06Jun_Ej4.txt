@@ -117,7 +117,7 @@ ip dhcp pool POOL_Educacion
   dns-server 8.8.8.8
 
 !DHCP para Teletrabajo
-ip dhcp excluded-address 192.168.100.28 192.168.100.30 
+ip dhcp excluded-address 192.168.100.28
 ip dhcp pool POOL_Teletrabajo
   network 192.168.100.0 255.255.255.224
   default-router 192.168.100.30

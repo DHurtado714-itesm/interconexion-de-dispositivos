@@ -28,8 +28,7 @@ enable secret Intern
 
 !Dar de alta usuarios con privilegios
 username Director privilege 15 secret tc2006B
-username Admin privilege 15 secret tc2006B
-username Intern privilege 2 secret tc2006B
+username CIT privilege 15 secret tc2006B
 
 ip domain-name OMI.mx
 
@@ -56,3 +55,105 @@ banner motd #
 -  Diego Sandoval
 -------------------------------------
 #
+
+! =============================================
+! =========  VTP Server =======================
+! =============================================
+
+vtp domain OMI.mx
+vtp mode server
+vtp password tc2006B
+
+!===============================================
+! =======    Configuracion VLANs   =============
+!===============================================
+
+! Crear VLANs
+vlan 100
+  name Primara
+
+vlan 200
+  name Secundaria
+
+vlan 300
+  name Prepa
+
+vlan 400
+  name Prensa
+
+vlan 500
+  name Coaches
+
+vlan 600
+  name Jueces
+
+vlan 700
+  name Server
+
+vlan 900
+  name Gestion
+
+! Asignar puertos a las VLANs
+
+interface range f0/1-2
+  description VLAN de Prepa
+  switchport mode access
+  switchport access vlan 300
+  no shut
+
+interface range f0/3-4
+  description VLAN de Secundaria
+  switchport mode access
+  switchport access vlan 200
+  no shut
+
+interface range f0/5-6
+  description VLAN de Primara
+  switchport mode access
+  switchport access vlan 100
+  no shut
+
+interface range f0/10-11
+  description VLAN de Jueces
+  switchport mode access
+  switchport access vlan 600
+  no shut
+
+interface range f0/14-15
+  description VLAN de Coaches
+  switchport mode access
+  switchport access vlan 500
+  no shut
+
+interface range f0/16-17
+  description VLAN de Prensa
+  switchport mode access
+  switchport access vlan 400
+  no shut
+
+interface g0/2
+  description VLAN de Server
+  switchport mode access
+  switchport access vlan 700
+  no shut
+
+
+! =============================================
+! Puertos Troncales
+! =============================================
+
+interface g0/1
+  description Troncal a Router
+  switchport mode trunk
+  no shut
+
+! =============================================
+! Gestion + gateway
+! =============================================
+
+interface vlan 900
+  description VLAN de Gestion
+  ip address 172.16.12.129 255.255.255.192
+  no shut
+
+ip default-gateway 172.16.12.190
