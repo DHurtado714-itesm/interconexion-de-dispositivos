@@ -1,0 +1,97 @@
+!===============================================
+! Configuracion del Switch Principal
+!===============================================
+
+! Cambiar al modo privilegiado
+enable
+
+! Parametros del reloj
+clock set 09:30:00 Jun 12 2023
+
+!===============================================
+! =======    Configuracion Global   ============
+!===============================================
+
+! Entrar a la configuracion de la terminal
+configure terminal
+
+! Asignar nombre
+hostname SFinalSecundaria2
+
+! Desactivar el DNS
+no ip domain-lookup
+
+! Establecer seguridad basica
+service password-encryption
+
+enable secret Intern
+
+!Dar de alta usuarios con privilegios
+username Director privilege 15 secret tc2006B
+username CIT privilege 15 secret tc2006B
+
+ip domain-name OMI.mx
+
+crypto key generate rsa
+
+yes
+1024
+
+line con 0
+  password tc2006B
+  login
+  loggin sync
+
+line vty 0 4
+  password tc2006B
+  login
+  loggin sync
+
+banner motd #
+-------------------------------------
+-  BIENVENIDO AL SWITCH FINAL      -
+-  Creado por:                     -
+-  Daniel Hurtado
+-  Yuna Chung
+-  Diego Sandoval
+-------------------------------------
+#
+
+
+!===============================================
+! =======    Configuracion de VTP     ==========
+! ==============================================
+
+vtp domain OMI.mx
+vtp mode client
+vtp password tc2006B
+
+!===============================================
+! =======    Configuracion de VLAN    ==========
+! ==============================================
+
+! Puertos fisicos
+
+interface range f0/1-24
+  description Interfaz de acceso
+  switchport mode access
+  switchport access vlan 200
+  no shutdown
+
+! Puerto trunk
+
+interface g0/1
+  description Conexión al Switch Intermedio
+  switchport mode trunk
+  no shutdown
+
+!===============================================
+! Gestion + gateway
+!===============================================
+
+interface vlan 900
+  description VLAN de gestion
+  ip addres 172.16.12.145 255.255.255.192
+  no shutdown
+
+ip default-gateway 172.16.12.190
